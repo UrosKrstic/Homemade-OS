@@ -38,7 +38,6 @@ public:
 	unsigned bp;
 	unsigned finished;
 	int time_slice;
-	unsigned unlimited_time_slice = 0;
 };
 
 PCB *p[3];
@@ -133,7 +132,7 @@ void dispatch(){
 unsigned oldTimerOFF, oldTimerSEG;
 
 // sets a new timer interrupt routine
-void init(){
+void inic(){
 	asm{
 		cli
 		push es
@@ -269,7 +268,7 @@ void doSomething(){
 
 int main(){
 	
-  init();
+  inic();
 
   doSomething();
   
