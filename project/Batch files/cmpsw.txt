@@ -1,0 +1,1 @@
+-mh -y -v -Ic:\bc31\include;c:\users\os1\desktop\project\include -Lc:\bc31\lib;c:\users\os1\desktop\project\lib -nc:\users\os1\desktop\project\output -eos.exe

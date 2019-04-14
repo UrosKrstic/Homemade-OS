@@ -1,0 +1,37 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "c:/bc31/bin/cmp",
+            "args": [
+                "%projdir%/src/*"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build and Run",
+            "type": "shell",
+            "command": "c:/bc31/bin/cmprun",
+            "args": [
+                "%projdir%/src/*"
+            ]
+        },
+        {
+            "label": "Run",
+            "type": "shell",
+            "command": "c:/bc31/bin/run",
+            "problemMatcher": []
+        },
+        {
+            "label": "Clear Build",
+            "type": "shell",
+            "command": "c:/bc31/bin/clearbuild",
+            "problemMatcher": []
+        }
+    ]
+}
