@@ -1,5 +1,7 @@
 #ifndef _PCB_H_
 #define _PCB_H_
+#include <dos.h>
+#include "thread.h"
 
 //Initializes I bit in PSW to 1
 //all other bits to 0
@@ -14,8 +16,13 @@
 //Process Control Block used to save the context of the running thread
 //and to initialize a new context
 //used during context switching
-class PCB{
-public:
+class PCB {
+private:
+	static volatile PCB* running;
+	friend void interrupt tick();
+	friend class Thread;
+	static unsigned auto_id;
+	unsigned id;
 	unsigned long int stack_size;
 	unsigned *stack;
 	unsigned sp;
@@ -24,10 +31,16 @@ public:
 	unsigned finished;
 	unsigned int time_slice;
 	unsigned int unlimited_time_slice;
-	PCB(unsigned long int stack_size = 4096, unsigned int time_slice = 2, void (*run_method)() = 0);
+	unsigned int thread_started;
+	PCB(unsigned long int stack_size = 4096, unsigned int time_slice = 2, void (*run_method)() = run_wrapper);
+	~PCB();
+	static void exit_thread();	
+	static void run_wrapper();
+	Thread *myThread;
+public:
+	static void init_running();
 };
 
 extern PCB *p[3];
-extern volatile PCB* running;
 
 #endif //_PCB_H_

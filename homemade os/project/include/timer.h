@@ -21,6 +21,9 @@ extern volatile unsigned int lockFlag;
 //flag used to indicate demanded context switch
 extern volatile int demanded_context_switch;
 
+//elapsed time in the program
+extern unsigned long time_in_ticks; // * 55ms
+
 //disables context switching
 #define lockMacro lockFlag=1;
 

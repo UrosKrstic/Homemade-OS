@@ -1,4 +1,5 @@
 #include "timer.h"
+#include "PCB.h"
 
 //flag for disabling a context switch during critical instructions
 //value 1 locks and disables context switching
@@ -7,7 +8,8 @@ volatile unsigned int lockFlag = 0;
 //flag used to indicate demanded context switch
 volatile int demanded_context_switch = 0;
 
-extern volatile PCB* running;
+//elapsed time in the program
+unsigned long time_in_ticks = 0; // * 55ms
 
 //helper variables for the timer interrupt
 unsigned tsp;
@@ -22,8 +24,11 @@ volatile unsigned int counter = 20;
 
 //interrupt routine
 void interrupt tick() {
-	if (!demanded_context_switch && !running->unlimited_time_slice) counter--;
-	if ((counter == 0 || demanded_context_switch) && !running->unlimited_time_slice) {
+	if (!demanded_context_switch && !PCB::running->unlimited_time_slice)
+		counter--;
+	if (!demanded_context_switch)
+		time_in_ticks++;
+	if ((counter == 0 || demanded_context_switch) && !PCB::running->unlimited_time_slice) {
 		if (!lockFlag) {
 			demanded_context_switch = 0;
 			//stores stack and base pointers into the running PCB
@@ -32,19 +37,19 @@ void interrupt tick() {
 				mov tss, ss
 				mov tbp, bp
 			}
-			running->sp = tsp;
-			running->ss = tss;
-			running->bp = tbp;
+			PCB::running->sp = tsp;
+			PCB::running->ss = tss;
+			PCB::running->bp = tbp;
 
 			//Scheduler used to get a new running PCB
-			if (!running->finished)
-				Scheduler::put((PCB *)running);
-			running = Scheduler::get();
+			if (!PCB::running->finished)
+				Scheduler::put((PCB *)PCB::running);
+			PCB::running = Scheduler::get();
 
 			//restores stack and base pointer from the new PCB
-			tsp = running->sp;
-			tss = running->ss;
-			tbp = running->bp;
+			tsp = PCB::running->sp;
+			tss = PCB::running->ss;
+			tbp = PCB::running->bp;
 			asm {
 				mov sp, tsp
 				mov ss, tss
@@ -53,7 +58,7 @@ void interrupt tick() {
 
 			//resets counter to the specified time slice
 			//for the new running thread
-			counter = running->time_slice;
+			counter = PCB::running->time_slice;
 		}
 		else {
 			demanded_context_switch = 1;
