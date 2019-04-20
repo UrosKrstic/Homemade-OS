@@ -41,11 +41,9 @@ void interrupt tick() {
 			PCB::running->sp = tsp;
 			PCB::running->ss = tss;
 			PCB::running->bp = tbp;
-			//cout << "not fucked" << endl;
+			
 			//Scheduler used to get a new running PCB
 			if (!(PCB::running->status & (PCB_BLOCKED | PCB_FINISHED | PCB_IDLE_THREAD))) {
-				//if (PCB::running->id == 0)
-					//cout << "fuck" << endl;
 				Scheduler::put((PCB *)PCB::running);
 			}
 			PCB::running = Scheduler::get();
@@ -53,10 +51,7 @@ void interrupt tick() {
 			
 			//TODO: add Idle Thread
 			if (PCB::running == nullptr) {
-				//cout << "really fucked" << endl;
-			}
-			else {
-				//cout << "New context: Thread with ID:" << PCB::running->id << endl;
+				PCB::running = PCB::idlePCB;
 			}
 
 			//restores stack and base pointer from the new PCB
@@ -90,6 +85,7 @@ void interrupt tick() {
 void inic() {
 	GlobalPCBList = new PCBList();
 	PCB::init_running();
+	PCB::init_Idle_PCB();
 	asm {
 		cli
 		push es
@@ -141,6 +137,7 @@ void restore(){
 		sti
 	}
 	delete PCB::running;
+	delete PCB::idlePCB;
 	delete GlobalPCBList;
 }
 

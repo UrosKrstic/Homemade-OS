@@ -35,8 +35,10 @@ class PCBList;
 class PCB {
 private:
 	static volatile PCB* running;
+	static PCB* idlePCB;
 	friend void interrupt tick();
 	friend void restore();
+	friend void inic();
 	friend class Thread;
 	static unsigned auto_id;
 	unsigned id;
@@ -51,11 +53,12 @@ private:
 	~PCB();
 	static void exit_thread();	
 	static void run_wrapper();
+	static void idle_run();
+	static void init_running();
+	static void init_Idle_PCB();
 	Thread *myThread;
 	PCBList* blockedList;
 public:
-	static void init_running();
-	static void init_userMain();
 	unsigned getID() { return id; }
 };
 

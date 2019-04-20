@@ -5,7 +5,8 @@
 
 
 unsigned PCB::auto_id = 0;
-volatile PCB* PCB::running = 0;
+volatile PCB* PCB::running = nullptr;
+PCB* PCB::idlePCB = nullptr;
 
 PCB::PCB(unsigned long int stack_size, unsigned int time_slice, void (*run_method)()) {
 	unsigned* stack = new unsigned[stack_size];
@@ -47,7 +48,7 @@ void PCB::exit_thread(){
 		if (pcb != nullptr) {
 			pcb->status &= ~PCB_BLOCKED;
 			pcb->status |= PCB_READY;
-			Scheduler::put(pcb);
+			//Scheduler::put(pcb);
 		}
 		else {
 			break;
@@ -62,10 +63,19 @@ void PCB::run_wrapper() {
 	exit_thread();
 }
 
+void PCB::idle_run() {
+	while (1) {}
+}
+
 void PCB::init_running() {
 	running = new PCB();
 	running->status |= PCB_READY | PCB_STARTED;
 	GlobalPCBList->insert((PCB*)running);
+}
+
+void PCB::init_Idle_PCB() {
+	idlePCB = new PCB(4096, 1, idle_run);
+	idlePCB->status |= PCB_READY | PCB_STARTED | PCB_IDLE_THREAD;
 }
 
 PCBList* GlobalPCBList;
