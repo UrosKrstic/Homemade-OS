@@ -1,6 +1,7 @@
 #include <dos.h>
 #include "PCB.h"
 #include "timer.h"
+#include <iostream.h>
 
 
 unsigned PCB::auto_id = 0;
@@ -24,18 +25,34 @@ PCB::PCB(unsigned long int stack_size, unsigned int time_slice, void (*run_metho
 
 	this->stack_size = stack_size;
 	this->time_slice = time_slice;
-	unlimited_time_slice = time_slice == 0 ? 1 : 0;
-	finished = 0;
+	if (time_slice == 0)
+		status |= PCB_UNLIMITED_TIME_SLICE;
+	else
+		status = 0;
 	id = auto_id++;
-	thread_started = 0;
+	blockedList = new PCBList();
 }
 
 PCB::~PCB() {
 	delete stack;
+	delete blockedList;
 }
 
 void PCB::exit_thread(){
-	running->finished = 1;
+	lockMacro;
+	running->status |= PCB_FINISHED;
+	while (1) {
+		PCB* pcb = running->blockedList->remove();
+		if (pcb != nullptr) {
+			pcb->status &= ~PCB_BLOCKED;
+			pcb->status |= PCB_READY;
+			Scheduler::put(pcb);
+		}
+		else {
+			break;
+		}
+	}
+	unlockMacro;
 	dispatch();
 }  
 
@@ -46,6 +63,12 @@ void PCB::run_wrapper() {
 
 void PCB::init_running() {
 	running = new PCB();
+	running->status |= PCB_READY | PCB_STARTED;
+	GlobalPCBList->insert((PCB*)running);
 }
 
-PCB *p[3];
+void PCB::init_userMain() {
+	//Scheduler::put(new PCB(4096, 2, userMain));
+}
+
+PCBList* GlobalPCBList;

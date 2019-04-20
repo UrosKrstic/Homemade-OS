@@ -14,6 +14,7 @@ public:
 	AB(unsigned long l, unsigned int t, char c) : Thread(l,t) {
 		this->c = c;
 	}
+	~AB() {waitToComplete();}
 protected:
 	void run();
 };
@@ -22,7 +23,6 @@ void AB::run() {
 		for (int i = 0; i < 30; ++i) {
 			lockMacro;
 			cout<<"u " << c << ":"
-			
 			 << "() i = "<< i <<endl;
 			unlockMacro;
 		for (int k = 0; k<10000; ++k)
@@ -34,9 +34,23 @@ void AB::run() {
 void doSomething() {
 	AB* a = new AB(1024, 40, 'a');
 	AB* b = new AB(1024, 40, 'b');
-	a->start(); a->start();
+	lockMacro;
+	GlobalPCBList->printList();
+	unlockMacro;
+	a->start();
 	b->start();
-	
+	delete b;
+	lockMacro;
+	GlobalPCBList->printList();
+	Thread* t = Thread::getThreadById(2);
+	if (t == nullptr) {
+		t = Thread::getThreadById(1);
+		cout << "not found 2"<< endl;
+	}
+	if (t == a)
+		cout << "Hurray" << endl;
+	unlockMacro;
+	delete a;
 	for (int i = 0; i < 30; ++i) {
 		lockMacro;
 		cout << "main " << i << endl;
@@ -49,11 +63,8 @@ void doSomething() {
 
 int main() {
 	
-	PCB::init_running();
-
 	inic();
-	//korisnicki main
-	//userMain(argc, argv);
+
 	doSomething();
   
 	restore();

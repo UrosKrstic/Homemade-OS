@@ -2,6 +2,7 @@
 #define _PCB_H_
 #include <dos.h>
 #include "thread.h"
+#include "PCBList.h"
 
 //Initializes I bit in PSW to 1
 //all other bits to 0
@@ -13,9 +14,23 @@
 #define RUN_METHOD_OFF_OFFSET 3
 #define ALL_REGISTERS_OFFSET 12
 
+
+#define nullptr (void*)0
+
+//STATUS BITS
+#define PCB_READY 1
+#define PCB_BLOCKED 2
+#define PCB_FINISHED 4
+#define PCB_STARTED 8
+#define PCB_UNLIMITED_TIME_SLICE 16
+#define PCB_IDLE_THREAD 32
+
 //Process Control Block used to save the context of the running thread
 //and to initialize a new context
 //used during context switching
+
+class PCBList;
+
 class PCB {
 private:
 	static volatile PCB* running;
@@ -28,19 +43,21 @@ private:
 	unsigned sp;
 	unsigned ss;
 	unsigned bp;
-	unsigned finished;
+	unsigned status;
 	unsigned int time_slice;
-	unsigned int unlimited_time_slice;
-	unsigned int thread_started;
 	PCB(unsigned long int stack_size = 4096, unsigned int time_slice = 2, void (*run_method)() = run_wrapper);
 	~PCB();
 	static void exit_thread();	
 	static void run_wrapper();
 	Thread *myThread;
+	PCBList* blockedList;
 public:
 	static void init_running();
+	static void init_userMain();
+	unsigned getID() { return id; }
 };
 
-extern PCB *p[3];
+extern PCBList* GlobalPCBList;
+
 
 #endif //_PCB_H_

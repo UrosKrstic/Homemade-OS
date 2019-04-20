@@ -1,6 +1,7 @@
 #ifndef _THREAD_H_
 #define _THREAD_H_
 
+
 typedef unsigned long StackSize;
 const StackSize defaultStackSize = 4096;
 typedef unsigned int Time; // time, x 55ms

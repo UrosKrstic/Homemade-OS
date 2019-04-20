@@ -1,5 +1,6 @@
 #include "timer.h"
 #include "PCB.h"
+#include <iostream.h>
 
 //flag for disabling a context switch during critical instructions
 //value 1 locks and disables context switching
@@ -9,7 +10,7 @@ volatile unsigned int lockFlag = 0;
 volatile int demanded_context_switch = 0;
 
 //elapsed time in the program
-unsigned long time_in_ticks = 0; // * 55ms
+unsigned long time_in_ticks = 0; // in ms
 
 //helper variables for the timer interrupt
 unsigned tsp;
@@ -24,11 +25,11 @@ volatile unsigned int counter = 20;
 
 //interrupt routine
 void interrupt tick() {
-	if (!demanded_context_switch && !PCB::running->unlimited_time_slice)
+	if (!demanded_context_switch && !(PCB::running->status & PCB_UNLIMITED_TIME_SLICE))
 		counter--;
 	if (!demanded_context_switch)
-		time_in_ticks++;
-	if ((counter == 0 || demanded_context_switch) && !PCB::running->unlimited_time_slice) {
+		time_in_ticks += 55;
+	if ((counter == 0 || demanded_context_switch) && !(PCB::running->status & PCB_UNLIMITED_TIME_SLICE)) {
 		if (!lockFlag) {
 			demanded_context_switch = 0;
 			//stores stack and base pointers into the running PCB
@@ -40,11 +41,23 @@ void interrupt tick() {
 			PCB::running->sp = tsp;
 			PCB::running->ss = tss;
 			PCB::running->bp = tbp;
-
+			//cout << "not fucked" << endl;
 			//Scheduler used to get a new running PCB
-			if (!PCB::running->finished)
+			if (!(PCB::running->status & (PCB_BLOCKED | PCB_FINISHED | PCB_IDLE_THREAD))) {
+				//if (PCB::running->id == 0)
+					//cout << "fuck" << endl;
 				Scheduler::put((PCB *)PCB::running);
+			}
 			PCB::running = Scheduler::get();
+			
+			
+			//TODO: add Idle Thread
+			if (PCB::running == nullptr) {
+				//cout << "really fucked" << endl;
+			}
+			else {
+				//cout << "New context: Thread with ID:" << PCB::running->id << endl;
+			}
 
 			//restores stack and base pointer from the new PCB
 			tsp = PCB::running->sp;
@@ -75,6 +88,9 @@ void interrupt tick() {
 
 // sets a new timer interrupt routine
 void inic() {
+	GlobalPCBList = new PCBList();
+	PCB::init_running();
+	//PCB::init_userMain();
 	asm {
 		cli
 		push es
@@ -125,13 +141,15 @@ void restore(){
 		pop es
 		sti
 	}
+	delete running;
+	delete GlobalPCBList;
 }
 
 
 //synchronous context switch
 void dispatch() {
-	asm cli;
+	lock;
 	demanded_context_switch = 1;
 	tick();
-	asm sti;
+	unlock;
 }
