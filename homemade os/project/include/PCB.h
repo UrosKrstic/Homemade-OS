@@ -14,7 +14,8 @@
 #define RUN_METHOD_OFF_OFFSET 3
 #define ALL_REGISTERS_OFFSET 12
 
-
+//definition, looks tidier
+//better than writing 0 
 #define nullptr (void*)0
 
 //STATUS BITS
@@ -25,16 +26,17 @@
 #define PCB_UNLIMITED_TIME_SLICE 16
 #define PCB_IDLE_THREAD 32
 
-//Process Control Block used to save the context of the running thread
-//and to initialize a new context
-//used during context switching
 
 class PCBList;
 
+//Process Control Block (PCB) used to save the context of the running thread
+//and to initialize a new context
+//used during context switching
 class PCB {
 private:
 	static volatile PCB* running;
 	friend void interrupt tick();
+	friend void restore();
 	friend class Thread;
 	static unsigned auto_id;
 	unsigned id;
@@ -58,6 +60,5 @@ public:
 };
 
 extern PCBList* GlobalPCBList;
-
 
 #endif //_PCB_H_

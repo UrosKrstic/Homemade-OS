@@ -90,7 +90,6 @@ void interrupt tick() {
 void inic() {
 	GlobalPCBList = new PCBList();
 	PCB::init_running();
-	//PCB::init_userMain();
 	asm {
 		cli
 		push es
@@ -141,7 +140,7 @@ void restore(){
 		pop es
 		sti
 	}
-	delete running;
+	delete PCB::running;
 	delete GlobalPCBList;
 }
 

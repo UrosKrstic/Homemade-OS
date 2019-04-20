@@ -33,6 +33,7 @@ PCB::PCB(unsigned long int stack_size, unsigned int time_slice, void (*run_metho
 	blockedList = new PCBList();
 }
 
+
 PCB::~PCB() {
 	delete stack;
 	delete blockedList;
@@ -65,10 +66,6 @@ void PCB::init_running() {
 	running = new PCB();
 	running->status |= PCB_READY | PCB_STARTED;
 	GlobalPCBList->insert((PCB*)running);
-}
-
-void PCB::init_userMain() {
-	//Scheduler::put(new PCB(4096, 2, userMain));
 }
 
 PCBList* GlobalPCBList;
