@@ -42,20 +42,20 @@ PCB::~PCB() {
 
 void PCB::exit_thread(){
 	lockMacro;
-	running->status |= PCB_FINISHED;
+	running->status = PCB_FINISHED;
 	while (1) {
 		PCB* pcb = running->blockedList->remove();
 		if (pcb != nullptr) {
 			pcb->status &= ~PCB_BLOCKED;
 			pcb->status |= PCB_READY;
-			//Scheduler::put(pcb);
+			Scheduler::put(pcb);
 		}
 		else {
 			break;
 		}
 	}
-	unlockMacro;
 	dispatch();
+	unlockMacro;
 }  
 
 void PCB::run_wrapper() {
@@ -64,11 +64,12 @@ void PCB::run_wrapper() {
 }
 
 void PCB::idle_run() {
+	cout << "idleThread running" << endl;
 	while (1) {}
 }
 
 void PCB::init_running() {
-	running = new PCB();
+	running = new PCB(4096, 20);
 	running->status |= PCB_READY | PCB_STARTED;
 	GlobalPCBList->insert((PCB*)running);
 }

@@ -25,6 +25,7 @@
 #define PCB_STARTED 8
 #define PCB_UNLIMITED_TIME_SLICE 16
 #define PCB_IDLE_THREAD 32
+#define PCB_TIMEOUT_DEBLOCK 64
 
 
 class PCBList;
@@ -40,6 +41,8 @@ private:
 	friend void restore();
 	friend void inic();
 	friend class Thread;
+	friend class KernelSem;
+	friend class SemList;
 	static unsigned auto_id;
 	unsigned id;
 	unsigned long int stack_size;

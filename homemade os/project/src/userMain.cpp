@@ -1,40 +1,95 @@
 #include <iostream.h>
 #include "thread.h"
+#include "semaphor.h"
 #include "timer.h"
 #include "PCB.h"
 
-class AB : public Thread {
+Semaphore *sem;
+Semaphore *sem2;
+
+class A : public Thread {
 public:
 	char c;
-	AB(unsigned long l, unsigned int t, char c) : Thread(l,t) {
+	A(unsigned long l, unsigned int t, char c) : Thread(l,t) {
 		this->c = c;
 	}
-	~AB() {waitToComplete();}
+	~A() {waitToComplete();}
 protected:
 	void run();
 };
 
-void AB::run() {
+void A::run() {
+	for (int i = 0; i < 5; ++i) {
+		sem2->wait(2);
+		lockMacro;
+		cout<<"u " << c << ":" << "() i = "<< i <<endl;
+		unlockMacro;
+	for (int k = 0; k<20000; ++k)
+		for (int j = 0; j <30000; ++j);
+	}
+}
+
+class B : public Thread {
+public:
+	char c;
+	B(unsigned long l, unsigned int t, char c) : Thread(l,t) {
+		this->c = c;
+	}
+	~B() {waitToComplete();}
+protected:
+	void run();
+};
+
+void B::run() {
 	for (int i = 0; i < 30; ++i) {
 		lockMacro;
-		cout<<"u " << c << ":"
-		 << "() i = "<< i <<endl;
+		cout<<"u " << c << ":" << "() i = "<< i <<endl;
 		unlockMacro;
-	for (int k = 0; k<10000; ++k)
+		//sem->signal(3);
+	for (int k = 0; k<30000; ++k)
+		for (int j = 0; j <30000; ++j);
+	}
+}
+
+class C : public Thread {
+public:
+	char c;
+	C(unsigned long l, unsigned int t, char c) : Thread(l,t) {
+		this->c = c;
+	}
+	~C() {waitToComplete();}
+protected:
+	void run();
+};
+
+void C::run() {
+	for (int i = 0; i < 5; ++i) {
+		int p = sem->wait(1);
+		lockMacro;
+		cout<<"u " << c << ":" << "() i = "<< i << " " << p <<endl;
+		unlockMacro;
+	for (int k = 0; k<20000; ++k)
 		for (int j = 0; j <30000; ++j);
 	}
 }
 
 
 int userMain(int argc, char* argv[]) {
-    AB* a = new AB(1024, 40, 'a');
-	AB* b = new AB(1024, 40, 'b');
+    A* a = new A(1024, 40, 'a');
+	C* c = new C(1024, 40, 'c');
+	A* d = new A(1024, 40, 'd');
+	B* b = new B(1024, 40, 'b');
+	sem = new Semaphore(0);
+	sem2 = new Semaphore(3);
 	lockMacro;
 	GlobalPCBList->printList();
 	unlockMacro;
+
 	a->start();
 	b->start();
-	delete b;
+	c->start();
+	d->start();
+	
 	lockMacro;
 	GlobalPCBList->printList();
 	Thread* t = Thread::getThreadById(2);
@@ -45,7 +100,7 @@ int userMain(int argc, char* argv[]) {
 	if (t == a)
 		cout << "Hurray" << endl;
 	unlockMacro;
-	delete a;
+
 	for (int i = 0; i < 30; ++i) {
 		lockMacro;
 		cout << "main " << i << endl;
@@ -55,5 +110,13 @@ int userMain(int argc, char* argv[]) {
 	}
 	cout << "Happy End" << endl;
 
+	delete a;
+	delete b;
+	delete c;
+	delete d;
+	cout << "Happy End" << endl;
+	delete sem;
+	delete sem2;
+	cout << "Happy End" << endl;
     return 0;
 }

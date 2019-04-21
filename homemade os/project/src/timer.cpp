@@ -1,5 +1,7 @@
 #include "timer.h"
 #include "PCB.h"
+#include "kerSem.h"
+#include "semList.h"
 #include <iostream.h>
 
 //flag for disabling a context switch during critical instructions
@@ -46,10 +48,11 @@ void interrupt tick() {
 			if (!(PCB::running->status & (PCB_BLOCKED | PCB_FINISHED | PCB_IDLE_THREAD))) {
 				Scheduler::put((PCB *)PCB::running);
 			}
+			//cout << "cs" << endl;
+			GlobalSemaphoreList->update();
+
 			PCB::running = Scheduler::get();
-			
-			
-			//TODO: add Idle Thread
+
 			if (PCB::running == nullptr) {
 				PCB::running = PCB::idlePCB;
 			}
@@ -84,6 +87,7 @@ void interrupt tick() {
 // sets a new timer interrupt routine
 void inic() {
 	GlobalPCBList = new PCBList();
+	GlobalSemaphoreList = new SemList();
 	PCB::init_running();
 	PCB::init_Idle_PCB();
 	asm {
@@ -138,6 +142,7 @@ void restore(){
 	}
 	delete PCB::running;
 	delete PCB::idlePCB;
+	delete GlobalSemaphoreList;
 	delete GlobalPCBList;
 }
 
@@ -145,7 +150,10 @@ void restore(){
 //synchronous context switch
 void dispatch() {
 	lock;
+	volatile int oldLockFlag = lockFlag;
+	lockFlag = 0;
 	demanded_context_switch = 1;
 	tick();
+	lockFlag = oldLockFlag;
 	unlock;
 }

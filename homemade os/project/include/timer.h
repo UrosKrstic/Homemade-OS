@@ -18,6 +18,9 @@
 //values 0 unlocks and enables context switching
 extern volatile unsigned int lockFlag;
 
+#define setLock lockFlag = 1;
+#define clearLock lockFlag = 0;
+
 //flag used to indicate demanded context switch
 extern volatile int demanded_context_switch;
 

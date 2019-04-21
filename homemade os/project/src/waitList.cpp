@@ -1,13 +1,13 @@
-#include "PCBList.h"
+#include "waitList.h"
 #include "timer.h"
 #include <iostream.h>
 
 
-PCBList::PCBList() {
+WaitList::WaitList() {
 	head = tail = nullptr;
 }
 
-PCBList::~PCBList() {
+WaitList::~WaitList() {
 	Node *tmp = head;
 	while (tmp != nullptr) {
 		tmp = tmp->next;
@@ -16,16 +16,16 @@ PCBList::~PCBList() {
 	}
 }
 
-void PCBList::insert(PCB* pcb) {
+void WaitList::insert(PCB* pcb, unsigned wait_time) {
 	if (head == nullptr) {
-		head = tail = new Node(pcb, nullptr);
+		head = tail = new Node(pcb,  wait_time, nullptr);
 	}
 	else {
-		tail = tail->next = new Node(pcb, nullptr);
+		tail = tail->next = new Node(pcb, wait_time, nullptr);
 	}
 }
 
-PCB* PCBList::searchById(unsigned id) {
+PCB* WaitList::searchById(unsigned id) {
 	Node *tmp = head;
 	while (tmp != nullptr) {
 		if (tmp->pcb->getID() == id) {
@@ -36,7 +36,7 @@ PCB* PCBList::searchById(unsigned id) {
 	return nullptr;
 }
 
-PCB* PCBList::remove() {
+PCB* WaitList::remove() {
 	PCB* pcb = nullptr;
 	if (head != nullptr) {
 		pcb = head->pcb;
@@ -49,7 +49,7 @@ PCB* PCBList::remove() {
     return pcb;
 }
 
-PCB* PCBList::remove(unsigned id) {
+PCB* WaitList::remove(unsigned id) {
 	Node *tmp = head, *prev = nullptr;
 	while (tmp != nullptr) {
 		if (tmp->pcb->getID() == id) {
@@ -75,7 +75,9 @@ PCB* PCBList::remove(unsigned id) {
 	return nullptr;
 }
 
-void PCBList::printList() {
+
+
+void WaitList::printList() {
    	Node* tmp = head;
     while (tmp != (void*)0) {
         cout << "Thread with ID:" << tmp->pcb->getID() << endl;

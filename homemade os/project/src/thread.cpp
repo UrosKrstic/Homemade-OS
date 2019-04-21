@@ -19,7 +19,6 @@ void Thread::waitToComplete() {
             PCB::running->status |= PCB_BLOCKED;
             PCB::running->status &= ~PCB_READY; 
             myPCB->blockedList->insert((PCB*)PCB::running);
-            unlockMacro;
             dispatch();
         }
     }
