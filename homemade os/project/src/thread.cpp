@@ -15,7 +15,7 @@ Thread::Thread(StackSize stackSize, Time timeSlice) {
 void Thread::waitToComplete() {
     lockMacro;
     if (myPCB->getID() != getRunningId()) {
-        while (!(myPCB->status & PCB_FINISHED)) {
+        while (!(myPCB->status & PCB_FINISHED) && (myPCB->status & PCB_STARTED)) {
             PCB::running->status |= PCB_BLOCKED;
             PCB::running->status &= ~PCB_READY; 
             myPCB->blockedList->insert((PCB*)PCB::running);

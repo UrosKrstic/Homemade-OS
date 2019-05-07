@@ -109,7 +109,7 @@ int userMain(int argc, char* argv[]) {
 			for (int k = 0; k < 30000; ++k);
 	}
 	cout << "Happy End" << endl;
-
+	
 	delete a;
 	delete b;
 	delete c;

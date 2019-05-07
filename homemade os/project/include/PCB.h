@@ -26,9 +26,10 @@
 #define PCB_UNLIMITED_TIME_SLICE 16
 #define PCB_IDLE_THREAD 32
 #define PCB_TIMEOUT_DEBLOCK 64
-
+#define PCB_LOCK 128
 
 class PCBList;
+class KernelEv;
 
 //Process Control Block (PCB) used to save the context of the running thread
 //and to initialize a new context
@@ -40,9 +41,12 @@ private:
 	friend void interrupt tick();
 	friend void restore();
 	friend void inic();
+	friend void dispatch();
 	friend class Thread;
 	friend class KernelSem;
 	friend class SemList;
+	friend class IVTEntry;
+	friend class KernelEv;
 	static unsigned auto_id;
 	unsigned id;
 	unsigned long int stack_size;
@@ -62,7 +66,7 @@ private:
 	Thread *myThread;
 	PCBList* blockedList;
 public:
-	unsigned getID() { return id; }
+	unsigned getID() const volatile { return id; }
 };
 
 extern PCBList* GlobalPCBList;

@@ -15,7 +15,6 @@ int main(int argc, char* argv[]) {
 	inic();
 
 	int return_value = userMain(argc, argv);
-
 	restore();
  
   return return_value;

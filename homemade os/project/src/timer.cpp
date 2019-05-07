@@ -2,6 +2,7 @@
 #include "PCB.h"
 #include "kerSem.h"
 #include "semList.h"
+#include "IVTEntry.h"
 #include <iostream.h>
 
 //flag for disabling a context switch during critical instructions
@@ -48,8 +49,9 @@ void interrupt tick() {
 			if (!(PCB::running->status & (PCB_BLOCKED | PCB_FINISHED | PCB_IDLE_THREAD))) {
 				Scheduler::put((PCB *)PCB::running);
 			}
-			//cout << "cs" << endl;
-			GlobalSemaphoreList->update();
+			
+			if (!demanded_context_switch)
+				GlobalSemaphoreList->update();
 
 			PCB::running = Scheduler::get();
 
@@ -144,16 +146,19 @@ void restore(){
 	delete PCB::idlePCB;
 	delete GlobalSemaphoreList;
 	delete GlobalPCBList;
+	IVTEntry::deleteIVT();
 }
 
-
-//synchronous context switch
+//synchronous demanded context switch
 void dispatch() {
 	lock;
-	volatile int oldLockFlag = lockFlag;
-	lockFlag = 0;
+	if (lockFlag) {
+		PCB::running->status |= PCB_LOCK;
+		lockFlag = 0;
+	}
 	demanded_context_switch = 1;
 	tick();
-	lockFlag = oldLockFlag;
+	lockFlag = PCB::running->status & PCB_LOCK;
+	PCB::running->status &= ~PCB_LOCK;
 	unlock;
 }
