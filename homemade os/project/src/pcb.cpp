@@ -78,5 +78,3 @@ void PCB::init_Idle_PCB() {
 	idlePCB = new PCB(4096, 1, idle_run);
 	idlePCB->status |= PCB_READY | PCB_STARTED | PCB_IDLE_THREAD;
 }
-
-PCBList* GlobalPCBList;

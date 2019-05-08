@@ -69,6 +69,4 @@ public:
 	unsigned getID() const volatile { return id; }
 };
 
-extern PCBList* GlobalPCBList;
-
 #endif //_PCB_H_

@@ -54,3 +54,5 @@ Thread* Thread::getThreadById(ID id) {
         return nullptr;
     
 }
+
+ID Thread::getId() { return (int)myPCB->id; };

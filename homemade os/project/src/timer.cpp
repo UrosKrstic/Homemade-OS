@@ -30,8 +30,11 @@ volatile unsigned int counter = 20;
 void interrupt tick() {
 	if (!demanded_context_switch && !(PCB::running->status & PCB_UNLIMITED_TIME_SLICE))
 		counter--;
-	if (!demanded_context_switch)
+	if (!demanded_context_switch) {
 		time_in_ticks += 55;
+		//TODO: improve update() method
+		GlobalSemaphoreList->update();
+	}
 	if ((counter == 0 || demanded_context_switch) && !(PCB::running->status & PCB_UNLIMITED_TIME_SLICE)) {
 		if (!lockFlag) {
 			demanded_context_switch = 0;
@@ -50,9 +53,6 @@ void interrupt tick() {
 				Scheduler::put((PCB *)PCB::running);
 			}
 			
-			if (!demanded_context_switch)
-				GlobalSemaphoreList->update();
-
 			PCB::running = Scheduler::get();
 
 			if (PCB::running == nullptr) {
@@ -76,7 +76,7 @@ void interrupt tick() {
 		else {
 			demanded_context_switch = 1;
 		}
-	} 
+	}
 	//calling the old timer interrupt routine
 	//which had been moved to 60h
 	//called only when no explicit context switch
@@ -88,8 +88,8 @@ void interrupt tick() {
 
 // sets a new timer interrupt routine
 void inic() {
-	GlobalPCBList = new PCBList();
-	GlobalSemaphoreList = new SemList();
+	//GlobalPCBList = new PCBList();
+	//GlobalSemaphoreList = new SemList();
 	PCB::init_running();
 	PCB::init_Idle_PCB();
 	asm {

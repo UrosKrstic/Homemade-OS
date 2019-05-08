@@ -27,5 +27,6 @@ public:
     void printList();
 };
 
+extern PCBList* GlobalPCBList;
 
 #endif //_PCBLIST_H_

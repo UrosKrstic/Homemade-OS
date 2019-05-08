@@ -82,3 +82,5 @@ void PCBList::printList() {
         tmp = tmp->next;
     }
 }
+
+PCBList* GlobalPCBList = new PCBList();

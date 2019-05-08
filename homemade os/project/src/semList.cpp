@@ -123,4 +123,4 @@ void SemList::printList() volatile {
     }
 }
 
-volatile SemList *GlobalSemaphoreList;
+volatile SemList *GlobalSemaphoreList = new SemList();
