@@ -13,6 +13,7 @@ class IVTEntry {
     KernelEv* myEvent;
 public:
     pInterrupt oldIntrRoutine;
+    pInterrupt newIntrRoutine;
     IVTEntry(unsigned char _n, unsigned _callOldIntr, pInterrupt intr);
     ~IVTEntry();
     void signal();
@@ -21,11 +22,11 @@ public:
 
 extern IVTEntry* IVT[NUMBER_OF_INTERRUPTS];
 
-
-#define PREPAREENTRY(n, flag) void interrupt intr_##n(); \
-    IV[##n] = new IVTEntry(##n, ##flag, intr_##n); \
-    void interrupt intr_##n() { IV[##n]->signal(); }
-
-
+#define PREPAREENTRY(entry, flag) \
+    void interrupt intr_##entry(...); \
+    IVTEntry ivt##entry(entry, flag, intr_##entry); \
+    void interrupt intr_##entry(...) { \
+        ivt##entry.signal(); \
+    }
 
 #endif //_IVTENTRY_H_

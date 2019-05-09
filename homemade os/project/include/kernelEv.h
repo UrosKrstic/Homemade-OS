@@ -10,6 +10,7 @@ class KernelEv {
     unsigned char ivtN;
     friend class Event;
     friend class IVTEntry;
+    unsigned isWaitingForEvent;
     PCB* PCBOwner;
     KernelEv(unsigned char n);
     ~KernelEv();

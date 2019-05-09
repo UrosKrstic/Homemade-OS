@@ -37,10 +37,10 @@ KernelSem::~KernelSem() {
 
 int KernelSem::wait(unsigned maxWaitTime) {
     lockMacro;
-    cout << "sem value:" << sem_value << endl;
+    //cout << "sem value:" << sem_value << endl;
     if (--sem_value < 0) {
-        cout << "gonna get blocked: " << PCB::running->getID() << endl; 
-        cout << "sem value:" << sem_value << endl;
+        //cout << "gonna get blocked: " << PCB::running->getID() << endl; 
+        //cout << "sem value:" << sem_value << endl;
         PCB::running->status &= ~PCB_READY;
         PCB::running->status |= PCB_BLOCKED;
         if (maxWaitTime > 0) {
@@ -50,6 +50,7 @@ int KernelSem::wait(unsigned maxWaitTime) {
             blockList->insert((PCB*)PCB::running);
         }
         dispatch();
+
     }
     unlockMacro;
     return !(PCB::running->status & PCB_TIMEOUT_DEBLOCK);
@@ -59,8 +60,8 @@ int KernelSem::signal(int n) {
     lockMacro;
     if (n == 0) {
         if (sem_value++ < 0) {
-            cout << "sem value:" << sem_value << endl;
-            cout << "unblocking a thread" << endl;
+            //cout << "sem value:" << sem_value << endl;
+            //cout << "unblocking a thread" << endl;
             PCB* pcb = blockList->remove();
             if (pcb == nullptr) {
                 pcb = sleepList->remove();
@@ -78,8 +79,8 @@ int KernelSem::signal(int n) {
     else if (n > 0) {
         sem_value += n;
         int unblocked_cnt = 0;
-        cout << "sem value:" << sem_value << endl;
-            cout << "unblocking threads" << endl;
+        //cout << "sem value:" << sem_value << endl;
+        //cout << "unblocking threads" << endl;
         while (n > 0) {
             PCB* pcb = blockList->remove();
             if (pcb == nullptr)

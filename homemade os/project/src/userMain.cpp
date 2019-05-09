@@ -1,4 +1,5 @@
 #include <iostream.h>
+#include "event.h"
 #include "thread.h"
 #include "semaphor.h"
 #include "timer.h"
@@ -137,108 +138,111 @@ int syncPrintf(const char *format, ...)
 	return res;
 }
 
-/*
- 	 Test: Semafori sa spavanjem 3
-*/
-
-int t=-1;
-
-Semaphore s(0);
-
-class TestThread : public Thread
-{
-private:
-	Time waitTime;
-
-public:
-
-	TestThread(Time WT): Thread(), waitTime(WT){}
-	~TestThread()
-	{
-		waitToComplete();
-	}
-protected:
-
-	void run();
-
-};
-
-void TestThread::run()
-{
-	syncPrintf("Thread %d waits for %d units of time.\n",getId(),waitTime);
-	int r = s.wait(waitTime);
-	s.signal();
-	syncPrintf("Thread %d finished: r = %d\n", getId(),r);
-}
-
-void tick()
-{
-	/*
-	t++;
-	if(t)
-		syncPrintf("%d\n",t);
-		*/
-}
-
-
-#include <iostream.h>
+PREPAREENTRY(9,1);
+// void interrupt intr_9(...);
+// IVTEntry ivt9(9, 1, intr_9);
+// void interrupt intr_9(...) {
+// 	ivt9.signal();
+// }
 
 Semaphore* mutex = 0;
+Semaphore* sleepSem = 0;
 
 class Znak : public Thread
 {
 public:
 	Znak(char znak, int n) : Thread(), znak(znak), n(n) {}
 	virtual ~Znak() { waitToComplete(); }
-
+	
 	void run()
 	{
-		for (long i = 0; i < 100000; i++)
+		// for (long i = 0; i < 100000; i++)
+		for (int i = 0; i < n; i++)
 		{
-			if (mutex->wait(n)) {
-				cout << znak;
-				mutex->signal();
-			}
-
-		}
-
-		if (mutex->wait(n)) {
-			cout << endl << znak << " finished" << endl;
+			mutex->wait(0);
+			cout << znak;
 			mutex->signal();
+			
+			// for (int j = 0; j < 10000; j++)
+				// for (int k = 0; k < 10000; k++);
+			Time sleepTime = 5 + rand() % 8;
+			sleepSem->wait(sleepTime);
+			
+			// dispatch();
 		}
+		
+		mutex->wait(0);
+		cout << endl << znak << " finished" << endl;
+		mutex->signal();
 	}
-
+	
 private:
 	char znak;
 	int n;
+	
+};
 
+
+class Key : public Thread {
+public:
+	Key(int n) : Thread(), n(n) {}
+	virtual ~Key() { waitToComplete(); }
+	
+	void run() {
+		Event e(9);
+		
+		for (int i = 0; i < n; i++) {
+			mutex->wait(0);
+			cout << endl << "key waiting " << (i + 1) << endl;
+			mutex->signal();
+			
+			e.wait();
+			
+			mutex->wait(0);
+			cout << endl << "key continue " << (i + 1) << endl;
+			mutex->signal();
+			
+			sleepSem->wait(5);
+		}
+		
+		mutex->wait(0);
+		cout << endl << "key finished" << endl;
+		mutex->signal();
+	}
+	
+private:
+	int n;
+	
 };
 
 
 int userMain(int argc, char* argv[]) {
 	mutex = new Semaphore(1);
-
+	sleepSem = new Semaphore(0);
+	
 	Znak* a = new Znak('a', 10);
 	Znak* b = new Znak('b', 15);
 	Znak* c = new Znak('c', 20);
-
+	Key* k = new Key(150);
+	
 	a->start();
 	b->start();
 	c->start();
-
+	k->start();
+	
 	delete a;
 	delete b;
 	delete c;
-
+	delete k;
+	
 	if (mutex->wait(1)) {
 		cout << endl << "userMain finished" << endl;
 		mutex->signal();
 	}
-
+	
+	delete sleepSem;
 	delete mutex;
-
-
-
+	
 	return 0;
 }
 

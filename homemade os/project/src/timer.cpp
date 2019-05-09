@@ -146,7 +146,7 @@ void restore(){
 	delete PCB::idlePCB;
 	delete GlobalSemaphoreList;
 	delete GlobalPCBList;
-	IVTEntry::deleteIVT();
+	//IVTEntry::deleteIVT();
 }
 
 //synchronous demanded context switch

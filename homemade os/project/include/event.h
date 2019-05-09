@@ -1,5 +1,6 @@
 #ifndef _event_h_
 #define _event_h_
+#include "IVTEntry.h"
 
 typedef unsigned char IVTNo;
 class KernelEv;
@@ -15,4 +16,5 @@ protected:
 private:
     KernelEv* myImpl;
 };
+
 #endif

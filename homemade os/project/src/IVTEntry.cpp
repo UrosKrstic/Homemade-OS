@@ -11,7 +11,9 @@ IVTEntry::IVTEntry(unsigned char _n, unsigned _callOldIntr, pInterrupt intr) :
     lock;
     myEvent = nullptr;
     oldIntrRoutine = getvect(n);
+    newIntrRoutine = intr;
     setvect(n, intr);
+    IVT[n] = this;
     unlock;
 }
 
@@ -24,7 +26,7 @@ IVTEntry::~IVTEntry() {
 void IVTEntry::signal() {
     lockMacro;
     if (callOldIntr) {
-        oldIntrRoutine();
+        (*oldIntrRoutine)();
     }
     if (myEvent != nullptr) {
         myEvent->signal();
