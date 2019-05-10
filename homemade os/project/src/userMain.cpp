@@ -139,11 +139,6 @@ int syncPrintf(const char *format, ...)
 }
 
 PREPAREENTRY(9,1);
-// void interrupt intr_9(...);
-// IVTEntry ivt9(9, 1, intr_9);
-// void interrupt intr_9(...) {
-// 	ivt9.signal();
-// }
 
 Semaphore* mutex = 0;
 Semaphore* sleepSem = 0;
