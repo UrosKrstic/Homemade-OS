@@ -3,6 +3,8 @@
 #include <dos.h>
 #include "thread.h"
 #include "PCBList.h"
+#include "SigReqQ.h"
+#include "HandList.h"
 
 //Initializes I bit in PSW to 1
 //all other bits to 0
@@ -13,6 +15,7 @@
 #define RUN_METHOD_SEG_OFFSET 2
 #define RUN_METHOD_OFF_OFFSET 3
 #define ALL_REGISTERS_OFFSET 12
+#define NUM_OF_SIGNALS 16
 
 //definition, looks tidier
 //better than writing 0 
@@ -56,6 +59,25 @@ private:
 	unsigned bp;
 	unsigned status;
 	unsigned int time_slice;
+
+	PCB* parent;
+	SignalRequestQueue sigReqQueue;
+	unsigned char isSignalBlocked[NUM_OF_SIGNALS];
+	SignalHandlerList handlerListForSignal[NUM_OF_SIGNALS];
+
+	static unsigned char globalIsSignalBlocked[NUM_OF_SIGNALS];
+
+	void saveSignalRequest(SignalId) {
+		sigReqQueue.saveRequest(signal);
+	}
+	void registerHandler(SignalId signal, SignalHandler handler) {
+		handlerListForSignal[signal].insertHandler(handler);
+	}
+	void unregisterAllHandlers(SignalId id);
+	void swap(SignalId id, SignalHandler hand1, SignalHandler hand2);
+	void handleSignals() volatile;
+	
+
 	PCB(unsigned long int stack_size = 4096, unsigned int time_slice = 2, void (*run_method)() = run_wrapper);
 	~PCB();
 	static void exit_thread();	

@@ -56,3 +56,35 @@ Thread* Thread::getThreadById(ID id) {
 }
 
 ID Thread::getId() { return (int)myPCB->id; };
+
+void Thread::signal(SignalId signal) {
+    myPCB->saveSignalRequest(signal);
+}
+
+void Thread::registerHandler(SignalId signal, SignalHandler handler) {
+    myPCB->registerHandler(signal, handler);
+}
+
+void Thread::unregisterAllHandlers(SignalId id) {
+    myPCB->unregisterAllHandlers(id);
+}
+
+void Thread::swap(SignalId id, SignalHandler hand1, SignalHandler hand2) {
+    myPCB->swap(id, hand1, hand2);
+}
+
+void Thread::blockSignal(SignalId signal) {
+    myPCB->isSignalBlocked[signal] = 1;
+}
+
+void Thread::blockSignalGlobally(SignalId signal) {
+    myPCB->globalIsSignalBlocked[signal] = 1;
+}
+
+void Thread::unblockSignal(SignalId signal) {
+     myPCB->isSignalBlocked[signal] = 0;
+}
+
+void Thread::unblockSignalGlobally(SignalId signal) {
+     myPCB->globalIsSignalBlocked[signal] = 0;
+}

@@ -7,6 +7,7 @@
 unsigned PCB::auto_id = 0;
 volatile PCB* PCB::running = nullptr;
 PCB* PCB::idlePCB = nullptr;
+unsigned char PCB::globalIsSignalBlocked[NUM_OF_SIGNALS] = {0};
 
 PCB::PCB(unsigned long int stack_size, unsigned int time_slice, void (*run_method)()) {
 	unsigned* stack = new unsigned[stack_size];
@@ -31,6 +32,10 @@ PCB::PCB(unsigned long int stack_size, unsigned int time_slice, void (*run_metho
 	else
 		status = 0;
 	id = auto_id++;
+	for (int i = 0; i < NUM_OF_SIGNALS; i++) {
+		isSignalBlocked[i] = 0;
+	}
+	parent = (PCB*)running;
 	blockedList = new PCBList();
 }
 
@@ -38,6 +43,30 @@ PCB::PCB(unsigned long int stack_size, unsigned int time_slice, void (*run_metho
 PCB::~PCB() {
 	delete stack;
 	delete blockedList;
+}
+
+void PCB::unregisterAllHandlers(SignalId id) {
+	handlerListForSignal[id].clearList();
+}
+
+void PCB::swap(SignalId id, SignalHandler hand1, SignalHandler hand2) {
+	handlerListForSignal[id].swap(hand1, hand2);
+}
+
+void PCB::handleSignals() volatile {
+	int signal = sigReqQueue.takeRequest();
+	while (signal >= 0) {
+		if (!globalIsSignalBlocked[signal] && !isSignalBlocked[signal]) {
+			for (SignalHandler hand = handlerListForSignal[signal].begin(); 
+				hand != handlerListForSignal[signal].end(); 
+				hand = handlerListForSignal[signal].getNext()) {
+					lockMacro;
+					(*hand)();
+					unlockMacro;
+			}
+		}
+		signal = sigReqQueue.takeRequest();
+	}
 }
 
 void PCB::exit_thread(){
@@ -60,6 +89,8 @@ void PCB::exit_thread(){
 
 void PCB::run_wrapper() {
 	running->myThread->run();
+	//parent->myThread->signal(1);
+	//myThread->signal(2);
 	exit_thread();
 }
 
@@ -69,7 +100,7 @@ void PCB::idle_run() {
 }
 
 void PCB::init_running() {
-	running = new PCB(4096, 20);
+	running = new PCB(4096, 2);
 	running->status |= PCB_READY | PCB_STARTED;
 	GlobalPCBList->insert((PCB*)running);
 }
