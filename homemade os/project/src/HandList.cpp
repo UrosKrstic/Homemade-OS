@@ -1,8 +1,31 @@
 #include "HandList.h"
 #include "PCB.h"
+#include <iostream.h>
 
 SignalHandlerList::SignalHandlerList() {
     head = tail = tmp = nullptr;
+}
+
+SignalHandlerList::SignalHandlerList(const SignalHandlerList& shl) {
+     if (this != &shl) {
+        head = tail = tmp = nullptr;
+        SignalHandlerList::Node* temp = shl.head;
+        for(; temp != nullptr; temp = temp->next) {
+            insertHandler(temp->signalHandler);
+        }
+    }
+}
+
+SignalHandlerList& SignalHandlerList::operator=(const SignalHandlerList& shl) {
+    if (this != &shl) {
+        clearList();
+        head = tail = tmp = nullptr;
+        SignalHandlerList::Node* temp = shl.head;
+        for(; temp != nullptr; temp = temp->next) {
+            insertHandler( temp->signalHandler);
+        }
+    }
+    return *this;
 }
 
 SignalHandlerList::~SignalHandlerList() {
@@ -23,7 +46,7 @@ void SignalHandlerList::insertHandler(SignalHandler sigHandler) {
     }
 }
 
-SignalHandler SignalHandlerList::begin() {
+SignalHandler SignalHandlerList::begin()  volatile {
     tmp = head;
     if (head != nullptr)
         return tmp->signalHandler;
@@ -31,11 +54,11 @@ SignalHandler SignalHandlerList::begin() {
         return nullptr;
 }
 
-SignalHandler SignalHandlerList::end() {
+SignalHandler SignalHandlerList::end()  volatile {
     return nullptr;
 }
 
-SignalHandler SignalHandlerList::getNext() {
+SignalHandler SignalHandlerList::getNext() volatile {
     if (tmp != nullptr) {
         tmp = tmp->next;
         if (tmp != nullptr) {
@@ -72,4 +95,3 @@ void SignalHandlerList::clearList() {
     }
     head = tail = tmp = nullptr;
 }
-

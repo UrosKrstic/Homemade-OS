@@ -19,7 +19,9 @@ void Thread::waitToComplete() {
             PCB::running->status |= PCB_BLOCKED;
             PCB::running->status &= ~PCB_READY; 
             myPCB->blockedList->insert((PCB*)PCB::running);
+            lockFlag = 0;
             dispatch();
+            lockFlag = 1;
         }
     }
     unlockMacro;
@@ -52,12 +54,12 @@ Thread* Thread::getThreadById(ID id) {
         return pcb->myThread;
     else
         return nullptr;
-    
 }
 
 ID Thread::getId() { return (int)myPCB->id; };
 
 void Thread::signal(SignalId signal) {
+    if (signal == 0) myPCB->status |= PCB_IS_KILLED;
     myPCB->saveSignalRequest(signal);
 }
 
@@ -78,7 +80,7 @@ void Thread::blockSignal(SignalId signal) {
 }
 
 void Thread::blockSignalGlobally(SignalId signal) {
-    myPCB->globalIsSignalBlocked[signal] = 1;
+    PCB::globalIsSignalBlocked[signal] = 1;
 }
 
 void Thread::unblockSignal(SignalId signal) {
@@ -86,5 +88,5 @@ void Thread::unblockSignal(SignalId signal) {
 }
 
 void Thread::unblockSignalGlobally(SignalId signal) {
-     myPCB->globalIsSignalBlocked[signal] = 0;
+     PCB::globalIsSignalBlocked[signal] = 0;
 }

@@ -32,13 +32,22 @@ PCB::PCB(unsigned long int stack_size, unsigned int time_slice, void (*run_metho
 	else
 		status = 0;
 	id = auto_id++;
-	for (int i = 0; i < NUM_OF_SIGNALS; i++) {
-		isSignalBlocked[i] = 0;
-	}
-	parent = (PCB*)running;
 	blockedList = new PCBList();
+	
+	parent = (PCB*)running;
+	if (parent != nullptr) {
+		for (int i = 0; i < NUM_OF_SIGNALS; i++) {
+			isSignalBlocked[i] = parent->isSignalBlocked[i];
+			handlerListForSignal[i] = parent->handlerListForSignal[i];
+		}
+	}
+	else {
+		for (int i = 0; i < NUM_OF_SIGNALS; i++) {
+			isSignalBlocked[i] = 0;
+		}
+		registerHandler(0, kill);
+	}
 }
-
 
 PCB::~PCB() {
 	delete stack;
@@ -46,7 +55,9 @@ PCB::~PCB() {
 }
 
 void PCB::unregisterAllHandlers(SignalId id) {
-	handlerListForSignal[id].clearList();
+	if (id != 0) {
+		handlerListForSignal[id].clearList();
+	}
 }
 
 void PCB::swap(SignalId id, SignalHandler hand1, SignalHandler hand2) {
@@ -54,19 +65,51 @@ void PCB::swap(SignalId id, SignalHandler hand1, SignalHandler hand2) {
 }
 
 void PCB::handleSignals() volatile {
-	int signal = sigReqQueue.takeRequest();
-	while (signal >= 0) {
-		if (!globalIsSignalBlocked[signal] && !isSignalBlocked[signal]) {
-			for (SignalHandler hand = handlerListForSignal[signal].begin(); 
-				hand != handlerListForSignal[signal].end(); 
-				hand = handlerListForSignal[signal].getNext()) {
-					lockMacro;
-					(*hand)();
-					unlockMacro;
+	if (!(status & PCB_IS_KILLED)) {
+		cout << "Handlujemo signale\n";
+		int signal = sigReqQueue.takeRequest();
+		while (signal >= 0) {
+			if (!globalIsSignalBlocked[signal] && !isSignalBlocked[signal]) {
+				for (SignalHandler hand = handlerListForSignal[signal].begin(); 
+					hand != handlerListForSignal[signal].end(); 
+					hand = handlerListForSignal[signal].getNext()) {
+						lockMacro;
+						(*hand)();
+						unlockMacro;
+				}
 			}
+			signal = sigReqQueue.takeRequest();
 		}
-		signal = sigReqQueue.takeRequest();
 	}
+	else {
+		lockMacro;
+		cout << "Ubijamo nit\n";
+		kill();
+		unlockMacro;
+	}
+}
+
+void PCB::kill() {
+	running->status = PCB_FINISHED;
+	while (1) {
+		PCB* pcb = running->blockedList->remove();
+		if (pcb != nullptr) {
+			pcb->status &= ~PCB_BLOCKED;
+			pcb->status |= PCB_READY;
+			Scheduler::put(pcb);
+		}
+		else {
+			break;
+		}
+	}
+	delete running->stack;
+	running->stack = nullptr;
+	delete running->blockedList;
+	running->blockedList = nullptr;
+	if (running->parent != nullptr)
+		running->parent->signal(1);
+	running->signal(2);
+	running = Scheduler::get();
 }
 
 void PCB::exit_thread(){
@@ -89,8 +132,11 @@ void PCB::exit_thread(){
 
 void PCB::run_wrapper() {
 	running->myThread->run();
-	//parent->myThread->signal(1);
-	//myThread->signal(2);
+	lockMacro;
+	if (running->parent != nullptr)
+		running->parent->signal(1);
+	running->signal(2);
+	unlockMacro;
 	exit_thread();
 }
 

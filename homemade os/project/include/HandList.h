@@ -12,11 +12,13 @@ class SignalHandlerList {
     Node *head, *tail, *tmp;
 public:
     SignalHandlerList();
+    SignalHandlerList(const SignalHandlerList& shl);
+    SignalHandlerList& operator=(const SignalHandlerList& shl);
     ~SignalHandlerList();
     void insertHandler(SignalHandler sigHandler);
-    SignalHandler begin();
-    SignalHandler end();
-    SignalHandler getNext();
+    SignalHandler begin() volatile;
+    SignalHandler end() volatile;
+    SignalHandler getNext() volatile;
     void swap(SignalHandler sig1, SignalHandler sig2);
     void clearList();
 };

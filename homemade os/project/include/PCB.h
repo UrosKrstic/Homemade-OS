@@ -29,7 +29,7 @@
 #define PCB_UNLIMITED_TIME_SLICE 16
 #define PCB_IDLE_THREAD 32
 #define PCB_TIMEOUT_DEBLOCK 64
-#define PCB_LOCK 128
+#define PCB_IS_KILLED 128
 
 class PCBList;
 class KernelEv;
@@ -45,6 +45,7 @@ private:
 	friend void restore();
 	friend void inic();
 	friend void dispatch();
+	friend int main(int argc, char* argv[]);
 	friend class Thread;
 	friend class KernelSem;
 	friend class SemList;
@@ -67,7 +68,12 @@ private:
 
 	static unsigned char globalIsSignalBlocked[NUM_OF_SIGNALS];
 
-	void saveSignalRequest(SignalId) {
+	void signal(SignalId id) volatile {
+		if (id == 0) status |= PCB_IS_KILLED;
+		sigReqQueue.saveRequest(id);
+	}
+
+	void saveSignalRequest(SignalId signal) {
 		sigReqQueue.saveRequest(signal);
 	}
 	void registerHandler(SignalId signal, SignalHandler handler) {
@@ -76,7 +82,7 @@ private:
 	void unregisterAllHandlers(SignalId id);
 	void swap(SignalId id, SignalHandler hand1, SignalHandler hand2);
 	void handleSignals() volatile;
-	
+	static void kill();
 
 	PCB(unsigned long int stack_size = 4096, unsigned int time_slice = 2, void (*run_method)() = run_wrapper);
 	~PCB();

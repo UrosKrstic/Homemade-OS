@@ -54,6 +54,13 @@ void interrupt tick() {
 			}
 			
 			PCB::running = Scheduler::get();
+			
+			while (PCB::running != nullptr && (PCB::running->status & PCB_IS_KILLED)) {
+				PCB::running->handleSignals();
+			}
+			if (PCB::running != nullptr) {
+				PCB::running->handleSignals();
+			}
 
 			if (PCB::running == nullptr) {
 				PCB::running = PCB::idlePCB;
@@ -151,13 +158,7 @@ void restore(){
 //synchronous demanded context switch
 void dispatch() {
 	lock;
-	if (lockFlag) {
-		PCB::running->status |= PCB_LOCK;
-		lockFlag = 0;
-	}
 	demanded_context_switch = 1;
 	tick();
-	lockFlag = PCB::running->status & PCB_LOCK;
-	PCB::running->status &= ~PCB_LOCK;
 	unlock;
 }

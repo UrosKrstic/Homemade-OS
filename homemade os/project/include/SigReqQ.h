@@ -11,8 +11,8 @@ class SignalRequestQueue {
 public:
     SignalRequestQueue();
     ~SignalRequestQueue();
-    void saveRequest(int signalID);
-    int takeRequest();
+    void saveRequest(int signalID) volatile;
+    int takeRequest() volatile;
 };
 
 #endif //_SIGREQQ_H_

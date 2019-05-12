@@ -14,7 +14,7 @@ SignalRequestQueue::~SignalRequestQueue() {
     }
 }
 
-void SignalRequestQueue::saveRequest(int signalID) {
+void SignalRequestQueue::saveRequest(int signalID) volatile {
     if (head == nullptr) {
         head = tail = new Node(signalID, nullptr);
     }
@@ -23,7 +23,7 @@ void SignalRequestQueue::saveRequest(int signalID) {
     }
 }
 
-int SignalRequestQueue::takeRequest() {
+int SignalRequestQueue::takeRequest() volatile {
     if (head == nullptr) {
         return -1;
     }
