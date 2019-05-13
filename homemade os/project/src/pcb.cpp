@@ -10,7 +10,8 @@ PCB* PCB::idlePCB = nullptr;
 unsigned char PCB::globalIsSignalBlocked[NUM_OF_SIGNALS] = {0};
 
 PCB::PCB(unsigned long int stack_size, unsigned int time_slice, void (*run_method)()) {
-	unsigned* stack = new unsigned[stack_size];
+
+	stack = stack_size < MIN_STACK_SIZE ? new unsigned[MIN_STACK_SIZE] : new unsigned[stack_size];
 	
 	//sets the I flag in the PSW register
 	//of the new thread

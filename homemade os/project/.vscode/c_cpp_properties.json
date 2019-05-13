@@ -3,16 +3,16 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}",
+                "${workspaceFolder}/include"
             ],
             "defines": [
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE"
             ],
-            "compilerPath": "C:\\bc31\\BIN\\BCC.exe",
-            "intelliSenseMode": "msvc-x64"
+            "compilerPath": "C:\\bc31\\BIN\\BCC.exe"
         }
-    ],
+    ], 
     "version": 4
 }

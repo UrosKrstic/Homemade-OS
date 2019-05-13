@@ -16,6 +16,7 @@
 #define RUN_METHOD_OFF_OFFSET 3
 #define ALL_REGISTERS_OFFSET 12
 #define NUM_OF_SIGNALS 16
+#define MIN_STACK_SIZE 16
 
 //definition, looks tidier
 //better than writing 0 
@@ -45,7 +46,6 @@ private:
 	friend void restore();
 	friend void inic();
 	friend void dispatch();
-	friend int main(int argc, char* argv[]);
 	friend class Thread;
 	friend class KernelSem;
 	friend class SemList;

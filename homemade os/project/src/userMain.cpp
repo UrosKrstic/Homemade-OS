@@ -27,7 +27,6 @@ void hand2() { syncPrintf("hand2\n"); }
 void hand3() { syncPrintf("hand3\n"); }
 void hand4() { syncPrintf("hand4\n"); }
 
-
 class Nit : public Thread {
 public:
 	Nit(): Thread() {};
