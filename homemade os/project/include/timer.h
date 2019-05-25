@@ -28,12 +28,11 @@ extern volatile int demanded_context_switch;
 extern unsigned long time_in_ticks; // * 55ms
 
 //disables context switching
-#define lockMacro lockFlag=1;
+#define lockMacro lockFlag++;
 
 //if a context switch was demanded
 // it will after the end of the lock
-#define unlockMacro lockFlag=0;\
-if (demanded_context_switch) {\
+#define unlockMacro if (--lockFlag == 0 && demanded_context_switch) {\
 dispatch();\
 }
 

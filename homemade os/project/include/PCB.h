@@ -84,7 +84,7 @@ private:
 	void handleSignals() volatile;
 	static void kill();
 
-	PCB(unsigned long int stack_size = 4096, unsigned int time_slice = 2, void (*run_method)() = run_wrapper);
+	PCB(unsigned long int stack_size = 4096, unsigned int time_slice = 2, void (*run_method)() = run_wrapper, int isUserThread = 1);
 	~PCB();
 	static void exit_thread();	
 	static void run_wrapper();

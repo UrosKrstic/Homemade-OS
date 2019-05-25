@@ -9,23 +9,25 @@ volatile PCB* PCB::running = nullptr;
 PCB* PCB::idlePCB = nullptr;
 unsigned char PCB::globalIsSignalBlocked[NUM_OF_SIGNALS] = {0};
 
-PCB::PCB(unsigned long int stack_size, unsigned int time_slice, void (*run_method)()) {
+PCB::PCB(unsigned long int stack_size, unsigned int time_slice, void (*run_method)(), int isUserThread) {
 
-	stack = stack_size < MIN_STACK_SIZE ? new unsigned[MIN_STACK_SIZE] : new unsigned[stack_size];
-	
-	//sets the I flag in the PSW register
-	//of the new thread
-	stack[stack_size - PSW_OFFSET] = PSW_INIT_VAL;
+	if (isUserThread) {
 
-	//sets the starting PC of the thread
-	stack[stack_size - RUN_METHOD_SEG_OFFSET] = FP_SEG(run_method);
-	stack[stack_size - RUN_METHOD_OFF_OFFSET] = FP_OFF(run_method);
+		stack = stack_size < MIN_STACK_SIZE ? new unsigned[MIN_STACK_SIZE] : new unsigned[stack_size];
+		
+		//sets the I flag in the PSW register
+		//of the new thread
+		stack[stack_size - PSW_OFFSET] = PSW_INIT_VAL;
 
-	//"pushing all registers on the stack"
-	sp = FP_OFF(stack + stack_size - ALL_REGISTERS_OFFSET);
-	ss = FP_SEG(stack + stack_size - ALL_REGISTERS_OFFSET);
-	bp = FP_OFF(stack + stack_size - ALL_REGISTERS_OFFSET);
+		//sets the starting PC of the thread
+		stack[stack_size - RUN_METHOD_SEG_OFFSET] = FP_SEG(run_method);
+		stack[stack_size - RUN_METHOD_OFF_OFFSET] = FP_OFF(run_method);
 
+		//"pushing all registers on the stack"
+		sp = FP_OFF(stack + stack_size - ALL_REGISTERS_OFFSET);
+		ss = FP_SEG(stack + stack_size - ALL_REGISTERS_OFFSET);
+		bp = FP_OFF(stack + stack_size - ALL_REGISTERS_OFFSET);
+	}
 	this->stack_size = stack_size;
 	this->time_slice = time_slice;
 	if (time_slice == 0)
@@ -147,12 +149,12 @@ void PCB::idle_run() {
 }
 
 void PCB::init_running() {
-	running = new PCB(4096, 2);
+	running = new PCB(4096, 2, nullptr, 0);
 	running->status |= PCB_READY | PCB_STARTED;
 	GlobalPCBList->insert((PCB*)running);
 }
 
 void PCB::init_Idle_PCB() {
-	idlePCB = new PCB(4096, 1, idle_run);
+	idlePCB = new PCB(4096, 1, idle_run, 0);
 	idlePCB->status |= PCB_READY | PCB_STARTED | PCB_IDLE_THREAD;
 }
