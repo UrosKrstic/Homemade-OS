@@ -35,7 +35,7 @@ void interrupt tick() {
 		//TODO: improve update() method
 		GlobalSemaphoreList->update();
 	}
-	if ((counter == 0 || demanded_context_switch) && !(PCB::running->status & PCB_UNLIMITED_TIME_SLICE)) {
+	if ((counter == 0 || demanded_context_switch) && (!(PCB::running->status & PCB_UNLIMITED_TIME_SLICE) || demanded_context_switch)) {
 		if (!lockFlag) {
 			demanded_context_switch = 0;
 			//stores stack and base pointers into the running PCB

@@ -12,14 +12,14 @@ IVTEntry::IVTEntry(unsigned char _n, unsigned _callOldIntr, pInterrupt intr) :
     myEvent = nullptr;
     oldIntrRoutine = getvect(n);
     newIntrRoutine = intr;
-    setvect(n, intr);
+    //setvect(n, intr);
     IVT[n] = this;
     unlock;
 }
 
 IVTEntry::~IVTEntry() {
     lock;
-    setvect(n, oldIntrRoutine);
+   //setvect(n, oldIntrRoutine);
     unlock;
 }
 

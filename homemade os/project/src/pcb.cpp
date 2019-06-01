@@ -68,25 +68,24 @@ void PCB::swap(SignalId id, SignalHandler hand1, SignalHandler hand2) {
 }
 
 void PCB::handleSignals() volatile {
-	if (!(status & PCB_IS_KILLED)) {
-		cout << "Handlujemo signale\n";
-		int signal = sigReqQueue.takeRequest();
-		while (signal >= 0) {
-			if (!globalIsSignalBlocked[signal] && !isSignalBlocked[signal]) {
-				for (SignalHandler hand = handlerListForSignal[signal].begin(); 
-					hand != handlerListForSignal[signal].end(); 
-					hand = handlerListForSignal[signal].getNext()) {
-						lockMacro;
-						(*hand)();
-						unlockMacro;
-				}
+	
+	//cout << "Handlujemo signale\n";
+	int signal = sigReqQueue.takeRequest();
+	while (signal >= 0) {
+		if (!globalIsSignalBlocked[signal] && !isSignalBlocked[signal] && signal != 0) {
+			for (SignalHandler hand = handlerListForSignal[signal].begin(); 
+			hand != handlerListForSignal[signal].end(); 
+			hand = handlerListForSignal[signal].getNext()) {
+				lockMacro;unlock;
+					(*hand)();
+				unlockMacro;lock;
 			}
-			signal = sigReqQueue.takeRequest();
 		}
+		signal = sigReqQueue.takeRequest();
 	}
-	else {
+	if (status & PCB_IS_KILLED) {
 		lockMacro;
-		cout << "Ubijamo nit\n";
+		//cout << "Ubijamo nit\n";
 		kill();
 		unlockMacro;
 	}
@@ -155,6 +154,6 @@ void PCB::init_running() {
 }
 
 void PCB::init_Idle_PCB() {
-	idlePCB = new PCB(4096, 1, idle_run, 0);
+	idlePCB = new PCB(4096, 1, idle_run);
 	idlePCB->status |= PCB_READY | PCB_STARTED | PCB_IDLE_THREAD;
 }

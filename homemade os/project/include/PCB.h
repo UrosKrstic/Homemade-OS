@@ -31,6 +31,7 @@
 #define PCB_IDLE_THREAD 32
 #define PCB_TIMEOUT_DEBLOCK 64
 #define PCB_IS_KILLED 128
+#define PCB_LOCK 256
 
 class PCBList;
 class KernelEv;
